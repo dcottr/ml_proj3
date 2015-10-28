@@ -7,8 +7,11 @@ print "loading nparrays"
 train_X = np.load('../data/train_inputs.npy')
 train_Y = np.load('../data/train_outputs.npy')
 
-print "training"
 clf = linear_model.LogisticRegression(verbose=1)
+#print cross_validation.cross_val_score(clf, train_X, train_Y, cv=2)
+#  [ 0.31289497  0.30614449]
+
+print "training"
 clf.fit(train_X, train_Y)
 
 print "loading test data"
