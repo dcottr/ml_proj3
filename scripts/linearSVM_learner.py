@@ -1,16 +1,16 @@
 import csv
 import numpy as np
 
-from sklearn import cross_validation, linear_model
+from sklearn import cross_validation, svm
 
 print "loading nparrays"
 train_X = np.load('../data/train_inputs.npy')
 train_Y = np.load('../data/train_outputs.npy')
 
-clf = linear_model.LogisticRegression(verbose=1)
+clf = svm.LinearSVC(verbose=1)
 #print cross_validation.cross_val_score(clf, train_X, train_Y, cv=2)
-#  [ 0.31289497  0.30614449]
-# 0.35390 on Kaggle
+#  [ 0.30197584  0.29274342]
+# 0.33980 on Kaggle
 
 print "training"
 clf.fit(train_X, train_Y)
@@ -31,7 +31,7 @@ test_Y = clf.predict(test_X)
 
 print "writing precictions"
 # Write output
-test_output_file = open('../data/test_output_logistic.csv', "wb")
+test_output_file = open('../data/test_output_linearSVM.csv', "wb")
 writer = csv.writer(test_output_file, delimiter=',') 
 writer.writerow(['Id', 'Prediction']) # write header
 for idx, y in enumerate(test_Y):
