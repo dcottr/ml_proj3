@@ -10,7 +10,7 @@ import sklearn
 from sklearn.metrics import confusion_matrix
 import matplotlib.pyplot as plt
 
-def createAndDrawConfMatrix(Y_true, Y_pred)
+def createAndDrawConfMatrix(Y_true, Y_pred):
 	nolabel = sklearn.metrics.confusion_matrix(Y_true, Y_pred)
 	print(nolabel)
 	plot_confusion_matrix(nolabel)

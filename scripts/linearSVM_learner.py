@@ -2,16 +2,48 @@ import csv
 import numpy as np
 
 from sklearn import cross_validation, svm
+import confMatrixDrawer
+from sklearn.decomposition import PCA
+from sklearn.cross_validation import StratifiedKFold
+from sklearn.metrics import accuracy_score
 
 print "loading nparrays"
-train_X = np.load('../data/train_inputs.npy')
-train_Y = np.load('../data/train_outputs.npy')
+X = np.load('../data/train_inputs.npy')
+Y = np.load('../data/train_outputs.npy')
 
-clf = svm.LinearSVC(verbose=1)
 #print cross_validation.cross_val_score(clf, train_X, train_Y, cv=2)
 #  [ 0.30197584  0.29274342]
 # 0.33980 on Kaggle ~ the same as SVM Baseline
 
+numFolds = 4
+skf = StratifiedKFold(Y, n_folds = numFolds)
+
+ytruetotal = []
+ypredtotal = []
+
+avgTotal = 0
+for train_index, test_index in skf:
+	X_train, X_test = X[train_index], X[test_index]
+	Y_train, Y_test = Y[train_index], Y[test_index]
+
+	pca = PCA(n_components=1000)
+	pca.fit(X_train)
+	pcaTrain_X = pca.transform(X_train)
+	pcaTest_X = pca.transform(X_test)
+	clf = svm.LinearSVC()
+	clf.fit_transform(X_train, Y_train)
+	Y_pred = clf.predict(X_test)
+
+	ytruetotal.extend(Y_test)
+	ypredtotal.extend(Y_pred)
+	accuracy =  accuracy_score(Y_test, Y_pred)
+	print accuracy
+	avgTotal += accuracy
+
+createAndDrawConfMatrix(ytruetotal,  ypredtotal)
+print avgTotal/numFolds
+
+'''
 print "training"
 clf.fit(train_X, train_Y)
 
@@ -38,3 +70,4 @@ for idx, y in enumerate(test_Y):
     row = [idx+1, int(y)]
     writer.writerow(row)
 test_output_file.close()
+'''
