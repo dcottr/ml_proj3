@@ -10,7 +10,7 @@ train_Y = np.load('../data/train_outputs.npy')
 clf = svm.LinearSVC(verbose=1)
 #print cross_validation.cross_val_score(clf, train_X, train_Y, cv=2)
 #  [ 0.30197584  0.29274342]
-# 0.33980 on Kaggle
+# 0.33980 on Kaggle ~ the same as SVM Baseline
 
 print "training"
 clf.fit(train_X, train_Y)

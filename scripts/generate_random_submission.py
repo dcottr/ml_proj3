@@ -7,7 +7,7 @@ test_inputs = []
 with open('../data/test_inputs.csv', 'rb') as csvfile:
     reader = csv.reader(csvfile, delimiter=',')
     next(reader, None)  # skip the header
-    for test_input in reader: 
+    for test_input in reader:
         test_input_no_id = []
         for pixel in test_input[1:]: # Start at index 1 to skip the Id
             test_input_no_id.append(float(pixel))
