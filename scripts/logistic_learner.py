@@ -5,6 +5,8 @@ from sklearn.decomposition import PCA
 from sklearn.cross_validation import StratifiedKFold
 from sklearn.metrics import accuracy_score
 
+from confMatrixDrawer import createAndDrawConfMatrix
+
 print "loading nparrays"
 X = np.load('../data/train_inputs.npy')
 Y = np.load('../data/train_outputs.npy')
@@ -28,6 +30,7 @@ for train_index, test_index in skf:
 	print accuracy
 	avgTotal += accuracy
 
+createAndDrawConfMatrix(ytruetotal,  ypredtotal)
 print avgTotal/numFolds
 	#print cross_validation.cross_val_score(clf, pcaTrain_X, train_Y, cv=2)
 #  [ 0.31289497  0.30614449]
