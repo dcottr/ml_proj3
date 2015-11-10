@@ -9,7 +9,7 @@ train_inputs = np.load('../data/train_inputs.npy')
 train_outputs = np.load('../data/train_outputs.npy')
 
 #transformExamples = 500
-spawnRate = 1
+spawnRate = 4
 
 new_inputs = open('../data/rotated_train_inputs.csv', "wb")
 inputs_writer = csv.writer(new_inputs, delimiter=',')

@@ -2,7 +2,7 @@ import csv
 import numpy as np
 
 from sklearn import cross_validation, svm
-import confMatrixDrawer
+from confMatrixDrawer import createAndDrawConfMatrix
 from sklearn.decomposition import PCA
 from sklearn.cross_validation import StratifiedKFold
 from sklearn.metrics import accuracy_score
@@ -42,6 +42,7 @@ for train_index, test_index in skf:
 
 createAndDrawConfMatrix(ytruetotal,  ypredtotal)
 print avgTotal/numFolds
+# 0.308818796896
 
 '''
 print "training"
