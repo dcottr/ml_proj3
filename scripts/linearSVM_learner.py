@@ -44,9 +44,8 @@ createAndDrawConfMatrix(ytruetotal,  ypredtotal)
 print avgTotal/numFolds
 # 0.308818796896
 
-'''
 print "training"
-clf.fit(train_X, train_Y)
+clf.fit(X, Y)
 
 print "loading test data"
 test_X = []
@@ -71,4 +70,3 @@ for idx, y in enumerate(test_Y):
     row = [idx+1, int(y)]
     writer.writerow(row)
 test_output_file.close()
-'''

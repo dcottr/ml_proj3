@@ -41,18 +41,9 @@ print avgTotal/numFolds
 #  [ 0.31289497  0.30614449]
 # 0.35390 on Kaggle
 
-'''
-With PCA:
-0.331920339119
-0.334986402176
-0.331466517321
-0.324183738796
-0.330639249353
-'''
 
-'''
 print "training"
-clf.fit(train_X, train_Y)
+clf.fit(X, Y)
 
 print "loading test data"
 test_X = []
@@ -77,4 +68,3 @@ for idx, y in enumerate(test_Y):
     row = [idx+1, int(y)]
     writer.writerow(row)
 test_output_file.close()
-'''
