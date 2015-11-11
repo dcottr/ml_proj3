@@ -14,6 +14,9 @@ Y = np.load('../data/train_outputs.npy')
 numFolds = 4
 skf = StratifiedKFold(Y, n_folds = numFolds)
 
+ytruetotal = []
+ypredtotal = []
+
 avgTotal = 0
 for train_index, test_index in skf:
 	X_train, X_test = X[train_index], X[test_index]
@@ -26,6 +29,8 @@ for train_index, test_index in skf:
 	clf = linear_model.LogisticRegression()
 	clf.fit_transform(X_train, Y_train)
 	Y_pred = clf.predict(X_test)
+	ytruetotal.extend(Y_test)
+	ypredtotal.extend(Y_pred)
 	accuracy =  accuracy_score(Y_test, Y_pred)
 	print accuracy
 	avgTotal += accuracy
