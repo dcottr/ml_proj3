@@ -29,17 +29,17 @@ class nnLayer:
         self.deltas = None
         self.neurons = None
         self.derivatives = None
-        self.tranformed = np.zeros((n, m))
+        self.tranformed = None
         
-        if not is_input:
-            self.neurons = np.zeros((n, m))
-            self.deltas = np.zeros((n, m))
+        #if not is_input:
+            #self.neurons = np.zeros((n, m))
+            #self.deltas = np.zeros((n, m))
             
         if not is_output:
             self.weights = np.random.normal(size=(m + 1, next_layer_size), scale=1E-2)
             
-        if not is_input and not is_output:
-            self.derivatives = np.zeros((m, n))
+        #if not is_input and not is_output:
+            #self.derivatives = np.zeros((m, n))
         
     def __str__(self):
         return str(self.neurons)
@@ -93,12 +93,12 @@ class FFNN:
             nobias = self.layers[i].weights[0:-1, :]
             self.layers[i].deltas = nobias.dot(self.layers[i + 1].deltas) * self.layers[i].derivative
     
-    def update_weights(self, eta):
+    def update_weights(self, alpha):
         for i in range(0, self.size-1):
-            W_grad = -eta*(self.layers[i+1].deltas.dot(self.layers[i].transformed)).T      
+            W_grad = -alpha*(self.layers[i+1].deltas.dot(self.layers[i].transformed)).T      
             self.layers[i].weights += W_grad
     
-    def evaluate(self, train_data, train_labels, test_data, test_labels, num_epochs=100, eta=0.0001):
+    def evaluate(self, train_data, train_labels, test_data, test_labels, num_epochs=100, alpha=0.0001):
 
         #N_train = len(train_labels)*len(train_labels[0])
         #N_test = len(test_labels)*len(test_labels[0])
@@ -109,7 +109,7 @@ class FFNN:
 
             output = self.forward(train_data)
             self.backward(output, train_labels)
-            self.update_weights(eta=eta)
+            self.update_weights(alpha=alpha)
 
             trainerrs = 0
             output = self.forward(train_data)
@@ -129,12 +129,30 @@ class FFNN:
             #errs += np.sum(1-test_labels[np.arange(len(test_labels)), yhat])
             test_percent = float(testerrs)/len(test_data)
             out_str = "{0} Test error: {1:.5f}".format(out_str, float(testerrs)/len(test_data))
-            if(t % 25 == 0):
-                results.append((train_percent, test_percent))
+            results.append((train_percent, test_percent))
             
             print out_str
         return results
+    
+    def predict(self, train_data, train_labels, test_data, num_epochs = 1863, alpha=0.0001):
+        for t in range(0, num_epochs):
+            print t
+            output = self.forward(train_data)
+            trainerrs = 0
+            predictions = np.argmax(output, axis=1)
+            for i in range(len(train_labels)):
+                if train_labels[i][predictions[i]] != 1:
+                    trainerrs += 1
+            print float(trainerrs)/len(train_labels)
+            self.backward(output, train_labels)
+            self.update_weights(alpha=alpha)
 
+        output = self.forward(test_data)
+        predictions = np.argmax(output, axis=1)
+        with open("predictions.txt", "a") as f:
+            for i in predictions:
+                f.write(str(i) + "\n")
+        return predictions
 
 if __name__ == "__main__":
     #np.random.seed(1)
@@ -148,60 +166,69 @@ if __name__ == "__main__":
     train_Y = labels[:5000, 1:]    
     test_X = data[5000:10000, 1:]
     test_Y = labels[5000:10000, 1:]'''#
-    
+    data_test = pd.read_csv('../data/test_inputs.csv')
+    data_test = pd.DataFrame.as_matrix(data_test)
+    data_test = data_test[:, 1:]
     def randotest(adata,label):
         #adata = np.zeros(np.shape(adata))
         for i in range(len(label)):
             adata[i,10*label[i]:10*label[i]+10]=1
         return adata
-    
+       
     def crossvalidate(X, Y, ffnet, alpha):
-        total_error = np.zeros(1)
-        for i in range(5):
+        total_error = np.zeros(2000)
+        for i in range(3):
             print "Training on set " + str(i) + " with alpha = " + str(alpha) + " and layersizes = " + str(ffnet.layersizes)
-            validationset = X[i * len(X)/5:(i + 1) * len(X)/5]
-            trainingset = np.concatenate((X[0 : i * len(X)/5], X[(i + 1) * len(X)/5:]), axis = 0)
-            validationlabels = Y[i * len(Y)/5:(i + 1) * len(Y)/5]
-            traininglabels = np.concatenate((Y[0 : i * len(Y)/5], Y[(i + 1) * len(Y)/5:]), axis = 0)
-            results = ffnet.evaluate(trainingset, traininglabels, validationset, validationlabels, num_epochs = 500, eta=alpha)
+            validationset = X[i * len(X)/3:(i + 1) * len(X)/3]
+            trainingset = np.concatenate((X[0 : i * len(X)/3], X[(i + 1) * len(X)/3:]), axis = 0)
+            validationlabels = Y[i * len(Y)/3:(i + 1) * len(Y)/3]
+            traininglabels = np.concatenate((Y[0 : i * len(Y)/3], Y[(i + 1) * len(Y)/3:]), axis = 0)
+            results = ffnet.evaluate(trainingset, traininglabels, validationset, validationlabels, num_epochs = 2000, alpha=alpha)
             for i in range(len(results)):
                 total_error[i] += results[i][1]
             ffnet.reset()
-        total_error = total_error/5
+        total_error = total_error/3
         #print str(total_error)
         return total_error
         
     def grid_search(X, Y, num_layers):
         outputs = []
-        poss_layersizes = [10, 20, 50, 100, 200, 500, 1000]
+        poss_layersizes = [100, 200]
         layersizes = [2304]
-        for e in range(5):
-            alpha = 10**(-(4+e)) 
+        filename = "results" + str(num_layers) + ".txt"
+        with open(filename, "a") as  f:
+            f.write("\n")
+        for e in range(1):
+            alpha = 10**(-(5+e)) 
             if num_layers == 0:
                 layersizes.append(10)
-                ffnet = FFNN(layersizes, len(X)/5 * 4)
+                ffnet = FFNN(layersizes, len(X)/3 * 2)
                 errors = crossvalidate(X, Y, ffnet, alpha)
                 best = 1
                 best_idx = 0                
                 for i in range(len(errors)):
-                    if errors[i] < 1:
+                    if errors[i] < best:
                         best = errors[i]
                         best_idx = i
-                outputs.append((num_layers, layersizes, alpha, best_idx * 25, best))
+                outputs.append((num_layers, layersizes, alpha, best_idx, best))
+                with open(filename, "a") as f:
+                    f.write(str((num_layers, layersizes, alpha, best_idx, best)) + "\n")
                 layersizes = [2304]
             elif num_layers == 1:
                 for size in poss_layersizes:
-                    layersizes.append(20)
+                    layersizes.append(size)
                     layersizes.append(10)
-                    ffnet = FFNN(layersizes, len(X)/5 * 4)
+                    ffnet = FFNN(layersizes, len(X)/3 * 2)
                     errors = crossvalidate(X, Y, ffnet, alpha)
                     best = 1
                     best_idx = 0                
                     for i in range(len(errors)):
-                        if errors[i] < 1:
+                        if errors[i] < best:
                             best = errors[i]
                             best_idx = i
-                    outputs.append((num_layers, layersizes, alpha, best_idx * 25, best)) 
+                    outputs.append((num_layers, layersizes, alpha, best_idx, best))
+                    with open(filename, "a") as f:
+                        f.write(str((num_layers, layersizes, alpha, best_idx, best)) + "\n")
                     layersizes = [2304]
             elif num_layers == 2:
                 for size1 in poss_layersizes:
@@ -209,7 +236,7 @@ if __name__ == "__main__":
                         layersizes.append(size1)
                         layersizes.append(size2)
                         layersizes.append(10)
-                        ffnet = FFNN(layersizes, len(X)/5 * 4)
+                        ffnet = FFNN(layersizes, len(X)/3 * 2)
                         errors = crossvalidate(X, Y, ffnet, alpha)
                         best = 1
                         best_idx = 0                
@@ -217,7 +244,7 @@ if __name__ == "__main__":
                             if errors[i] < 1:
                                 best = errors[i]
                                 best_idx = i
-                        outputs.append((num_layers, layersizes, alpha, best_idx * 25, best))   
+                        outputs.append(str((num_layers, layersizes, alpha, best_idx, best)))   
                         layersizes = [2304]
         return outputs
               
@@ -227,14 +254,30 @@ if __name__ == "__main__":
     bias = np.ones((len(data), 1))
     data = np.concatenate((data, bias), axis=1)
     
-    for i in range(3):
+    '''for i in range(2):
         filename = "results" + str(i) + ".txt"
-        results = grid_search(X = data, Y = ys, num_layers = 1)
+        results = grid_search(X = data, Y = ys, num_layers = i)
         with open(filename, "w") as f:
             for result in results:
                 print str(result)
-                f.write(str(result) + "\n")
-        
+                f.write(str(result) + "\n")'''
+                
+    #for i in range(2):
+    #results = grid_search(X = data, Y = ys, num_layers = 1)
+    layersizes = [2304, 100, 10]
+    ffnet = FFNN(layersizes, 50000)
+    '''i = 0
+    X = data
+    Y = ys
+    validationset = X[i * len(X)/3:(i + 1) * len(X)/3]
+    trainingset = np.concatenate((X[0 : i * len(X)/3], X[(i + 1) * len(X)/3:]), axis = 0)
+    validationlabels = Y[i * len(Y)/3:(i + 1) * len(Y)/3]
+    traininglabels = np.concatenate((Y[0 : i * len(Y)/3], Y[(i + 1) * len(Y)/3:]), axis = 0)'''
+    predictions = ffnet.predict(data, ys, data_test, num_epochs = 1863, alpha = .00001)
+    '''with open("predictions.txt", "a") as f:
+        for i in predictions:
+            f.write(str(i) + "\n")'''
+            
     '''n = len(train_X)
     m = len(train_X[0])
     bias = np.ones((n, 1))
